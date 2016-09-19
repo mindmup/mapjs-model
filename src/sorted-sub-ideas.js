@@ -1,0 +1,34 @@
+/*global module */
+var positive = function positive(key) {
+		'use strict';
+		return key >= 0;
+	},
+	negative = function negative(key) {
+		'use strict';
+		return !positive(key);
+	},
+	absCompare = function (a, b) {
+		'use strict';
+		var absA = Math.abs(a),
+			absB = Math.abs(b);
+		if (absA < absB) {
+			return -1;
+		} else if (absA > absB) {
+			return 1;
+		} else {
+			return 0;
+		}
+	};
+module.exports = function sortedSubIdeas(contentIdea) {
+	'use strict';
+	var childKeys, sortedChildKeys;
+	if (!contentIdea.ideas) {
+		return [];
+	}
+	childKeys = Object.keys(contentIdea.ideas).map(parseFloat);
+	sortedChildKeys = childKeys.filter(positive).sort(absCompare).concat(childKeys.filter(negative).sort(absCompare));
+	return sortedChildKeys.map(function (key) {
+		return contentIdea.ideas[key];
+	});
+};
+
