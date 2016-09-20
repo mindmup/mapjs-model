@@ -25,5 +25,8 @@
   "devDependencies": {
     "jasmine": "^2.5.2",
     "jasmine-spec-reporter": "^2.7.0"
+  },
+  "dependencies": {
+    "underscore": "^1.8.3"
   }
 }

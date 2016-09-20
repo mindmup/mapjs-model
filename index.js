@@ -3,5 +3,6 @@ module.exports = {
 	URLHelper: require('./src/url-helper'),
 	sortedSubIdeas: require('./src/sorted-sub-ideas'),
 	traverse: require('./src/traverse'),
-	formattedNodeTitle: require('./src/formatted-node-title')
+	formattedNodeTitle: require('./src/formatted-node-title'),
+	contentUpgrade: require('./src/content-upgrade')
 };
