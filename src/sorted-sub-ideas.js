@@ -9,15 +9,7 @@ var positive = function positive(key) {
 	},
 	absCompare = function (a, b) {
 		'use strict';
-		var absA = Math.abs(a),
-			absB = Math.abs(b);
-		if (absA < absB) {
-			return -1;
-		} else if (absA > absB) {
-			return 1;
-		} else {
-			return 0;
-		}
+		return Math.abs(a) - Math.abs(b);
 	};
 module.exports = function sortedSubIdeas(contentIdea) {
 	'use strict';
