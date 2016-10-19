@@ -806,7 +806,7 @@ module.exports = function content(contentAggregate, sessionKey) {
 			if (!afterRank) {
 				return false;
 			}
-			siblingRanks = sameSideSiblingRanks(parentIdea, currentRank);
+			siblingRanks = sameSideSiblingRanks(parentIdea, afterRank);
 			candidateSiblings = _.reject(_.sortBy(siblingRanks, Math.abs), function (k) {
 				return Math.abs(k) >= Math.abs(afterRank);
 			});
