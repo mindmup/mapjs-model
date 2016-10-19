@@ -232,8 +232,16 @@ module.exports = function content(contentAggregate, sessionKey) {
 			}
 		},
 		reorderChild = function (parentIdea, newRank, oldRank) {
+			var undoFunction = function () {
+				if (parentIdea.ideas[oldRank] || !parentIdea.ideas[newRank]) {
+					return false;
+				}
+				parentIdea.ideas[oldRank] = parentIdea.ideas[newRank];
+				delete parentIdea.ideas[newRank];
+			};
 			parentIdea.ideas[newRank] = parentIdea.ideas[oldRank];
 			delete parentIdea.ideas[oldRank];
+			return undoFunction;
 		},
 		sessionFromId = function (id) {
 			var dotIndex = String(id).indexOf('.');
@@ -508,16 +516,15 @@ module.exports = function content(contentAggregate, sessionKey) {
 	commandProcessors.flip = function (originSession, ideaId) {
 		var newRank, maxRank,
 			parentIdea = contentAggregate.findParent(ideaId),
+			undoFunction,
 			currentRank = parentIdea && contentAggregate.isRootNode(parentIdea.id) &&  parentIdea.findChildRankById(ideaId);
 		if (!currentRank) {
 			return false;
 		}
 		maxRank = maxKey(parentIdea.ideas, -1 * sign(currentRank));
 		newRank = maxRank - 10 * sign(currentRank);
-		reorderChild(parentIdea, newRank, currentRank);
-		logChange('flip', [ideaId], function () {
-			reorderChild(parentIdea, currentRank, newRank);
-		}, originSession);
+		undoFunction = reorderChild(parentIdea, newRank, currentRank);
+		logChange('flip', [ideaId], undoFunction, originSession);
 		return true;
 	};
 	contentAggregate.initialiseTitle = function (/*ideaId, title*/) {
@@ -791,7 +798,7 @@ module.exports = function content(contentAggregate, sessionKey) {
 		return contentAggregate.execCommand('positionBefore', arguments);
 	};
 	commandProcessors.positionBefore = function (originSession, ideaId, positionBeforeIdeaId, parentIdea) {
-		var newRank, afterRank, siblingRanks, candidateSiblings, beforeRank, maxRank, currentRank;
+		var newRank, afterRank, siblingRanks, candidateSiblings, beforeRank, maxRank, currentRank, undoFunction;
 		parentIdea = parentIdea || contentAggregate.findParent(ideaId);
 		if (!parentIdea) {
 			return false;
@@ -825,10 +832,8 @@ module.exports = function content(contentAggregate, sessionKey) {
 		if (newRank == currentRank) {
 			return false;
 		}
-		reorderChild(parentIdea, newRank, currentRank);
-		logChange('positionBefore', [ideaId, positionBeforeIdeaId], function () {
-			reorderChild(parentIdea, currentRank, newRank);
-		}, originSession);
+		undoFunction = reorderChild(parentIdea, newRank, currentRank);
+		logChange('positionBefore', [ideaId, positionBeforeIdeaId], undoFunction, originSession);
 		return true;
 	};
 	observable(contentAggregate);

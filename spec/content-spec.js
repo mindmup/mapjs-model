@@ -1234,6 +1234,17 @@ describe('content aggregate', function () {
 				expect(idea.ideas[1].findChildRankById(2)).toBe(-5);
 				expect(idea.ideas[1].ideas[newRank]).toBeUndefined();
 			});
+			it('should not undo if another session has subsequently flipped the idea', function () {
+				var idea = content({id: 1, ideas: { '-5': { id: 2}}}), newRank;
+				idea.flip(2);
+				idea.execCommand('flip', [2], 'anotherSession');
+
+				idea.undo();
+
+				newRank = idea.findChildRankById(2);
+				expect(idea.ideas[1].findChildRankById(2)).toBe(-10);
+				expect(Object.keys(idea.ideas[1].ideas)).toEqual(['-10']);
+			});
 		});
 		describe('getOrderedSiblingRanks', function () {
 			var options, idea;
@@ -2100,7 +2111,7 @@ describe('content aggregate', function () {
 
 				expect(listener).toHaveBeenCalledWith('updateTitle', [1, 'New']);
 			});
-			it('undos an entire batch', function () {
+			it('undoes an entire batch', function () {
 				wrapped.endBatch();
 
 				wrapped.undo();
