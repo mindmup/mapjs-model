@@ -792,18 +792,11 @@ module.exports = function content(contentAggregate, sessionKey) {
 	};
 	commandProcessors.positionBefore = function (originSession, ideaId, positionBeforeIdeaId, parentIdea) {
 		var newRank, afterRank, siblingRanks, candidateSiblings, beforeRank, maxRank, currentRank;
-		parentIdea = parentIdea || contentAggregate;
-
-		currentRank = parentIdea.findChildRankById(ideaId);
-		if (!currentRank) {
-			return _.reduce(
-				parentIdea.ideas,
-				function (result, idea) {
-					return result || commandProcessors.positionBefore(originSession, ideaId, positionBeforeIdeaId, idea);
-				},
-				false
-			);
+		parentIdea = parentIdea || contentAggregate.findParent(ideaId);
+		if (!parentIdea) {
+			return false;
 		}
+		currentRank = parentIdea.findChildRankById(ideaId);
 		if (ideaId == positionBeforeIdeaId) {
 			return false;
 		}
