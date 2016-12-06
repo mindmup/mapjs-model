@@ -393,10 +393,18 @@ module.exports = function content(contentAggregate, sessionKey) {
 	};
 
 	/**** aggregate command processing methods ****/
+	contentAggregate.isBatchActive = function (originSession) {
+		var activeSession = originSession || sessionKey;
+		return !!batches[activeSession];
+	};
 	contentAggregate.startBatch = function (originSession) {
 		var activeSession = originSession || sessionKey;
 		contentAggregate.endBatch(originSession);
 		batches[activeSession] = [];
+	};
+	contentAggregate.discardBatch = function (originSession) {
+		var activeSession = originSession || sessionKey;
+		batches[activeSession] = undefined;
 	};
 	contentAggregate.endBatch = function (originSession) {
 		var activeSession = originSession || sessionKey,
@@ -438,13 +446,23 @@ module.exports = function content(contentAggregate, sessionKey) {
 	};
 
 	contentAggregate.batch = function (batchOp) {
-		contentAggregate.startBatch();
-		try {
-			batchOp();
+		var hasActiveBatch = contentAggregate.isBatchActive(),
+			results;
+		if (!hasActiveBatch) {
+			contentAggregate.startBatch();
 		}
-		finally {
+		try {
+			results = batchOp();
+		} catch (e) {
+			if (!hasActiveBatch) {
+				contentAggregate.discardBatch();
+			}
+			throw e;
+		}
+		if (!hasActiveBatch) {
 			contentAggregate.endBatch();
 		}
+		return results;
 	};
 
 	commandProcessors.batch = function (originSession) {
@@ -459,13 +477,11 @@ module.exports = function content(contentAggregate, sessionKey) {
 		}
 	};
 	contentAggregate.pasteMultiple = function (parentIdeaId, jsonArrayToPaste) {
-		var results;
-		contentAggregate.startBatch();
-		results = _.map(jsonArrayToPaste, function (json) {
-			return contentAggregate.paste(parentIdeaId, json);
+		return contentAggregate.batch(function () {
+			return _.map(jsonArrayToPaste, function (json) {
+				return contentAggregate.paste(parentIdeaId, json);
+			});
 		});
-		contentAggregate.endBatch();
-		return results;
 	};
 
 	contentAggregate.paste = function (/*parentIdeaId, jsonToPaste, initialId*/) {
@@ -621,19 +637,18 @@ module.exports = function content(contentAggregate, sessionKey) {
 		return true;
 	};
 	contentAggregate.insertIntermediateMultiple = function (idArray, ideaOptions) {
-		var newId;
-		contentAggregate.startBatch();
-		newId = contentAggregate.insertIntermediate(idArray[0], ideaOptions && ideaOptions.title);
-		if (ideaOptions && ideaOptions.attr) {
-			Object.keys(ideaOptions.attr).forEach(function (key) {
-				contentAggregate.updateAttr(newId, key, ideaOptions.attr[key]);
+		return contentAggregate.batch(function () {
+			var newId = contentAggregate.insertIntermediate(idArray[0], ideaOptions && ideaOptions.title);
+			if (ideaOptions && ideaOptions.attr) {
+				Object.keys(ideaOptions.attr).forEach(function (key) {
+					contentAggregate.updateAttr(newId, key, ideaOptions.attr[key]);
+				});
+			}
+			_.each(idArray.slice(1), function (id) {
+				contentAggregate.changeParent(id, newId);
 			});
-		}
-		_.each(idArray.slice(1), function (id) {
-			contentAggregate.changeParent(id, newId);
+			return newId;
 		});
-		contentAggregate.endBatch();
-		return newId;
 	};
 	contentAggregate.insertIntermediate = function (/*inFrontOfIdeaId, title, optionalNewId*/) {
 		return contentAggregate.execCommand('insertIntermediate', arguments);

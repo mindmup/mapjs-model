@@ -1,4 +1,4 @@
-/*global beforeEach, describe, expect, it, jasmine, spyOn, require*/
+/*global beforeEach, describe, expect, it, jasmine, spyOn, require */
 var content = require('../src/content'),
 	_ = require('underscore');
 describe('content aggregate', function () {
@@ -2020,19 +2020,57 @@ describe('content aggregate', function () {
 
 	});
 	describe('command batching', function () {
-		it('executes a batch as a shortcut method', function () {
-			var wrapped = content({id: 1, title: 'Original'}),
-				listener = jasmine.createSpy();
-			wrapped.addEventListener('changed', listener);
-			wrapped.batch(function () {
-				wrapped.updateTitle(1, 'Mix');
-				wrapped.updateTitle(1, 'Max');
+		describe('batch shortcut method', function () {
+			var wrapped, listener;
+			beforeEach(function () {
+				wrapped = content({id: 1, title: 'Original'});
+				listener = jasmine.createSpy('listener');
+				wrapped.addEventListener('changed', listener);
 			});
-			expect(listener.calls.count()).toBe(1);
-			expect(listener).toHaveBeenCalledWith('batch', [
-				['updateTitle', 1, 'Mix'],
-				['updateTitle', 1, 'Max']
-			]);
+			it('executes a batch as a shortcut method', function () {
+				wrapped.batch(function () {
+					wrapped.updateTitle(1, 'Mix');
+					wrapped.updateTitle(1, 'Max');
+				});
+				expect(listener.calls.count()).toBe(1);
+				expect(listener).toHaveBeenCalledWith('batch', [
+					['updateTitle', 1, 'Mix'],
+					['updateTitle', 1, 'Max']
+				]);
+			});
+			it('does not create a separate batch if one already runs', function () {
+				wrapped.batch(function () {
+					wrapped.updateTitle(1, 'Mix');
+					wrapped.batch(function () {
+						wrapped.updateTitle(1, 'Max');
+					});
+				});
+				expect(listener.calls.count()).toBe(1);
+				expect(listener).toHaveBeenCalledWith('batch', [
+					['updateTitle', 1, 'Mix'],
+					['updateTitle', 1, 'Max']
+				]);
+			});
+			it('returns the results of the batch operation', function () {
+				expect(wrapped.batch(function () {
+					return 'res1';
+				})).toEqual('res1');
+			});
+			it('does not submit a batch in case of an exception', function () {
+				var caughtError;
+				try {
+					wrapped.batch(function () {
+						wrapped.updateTitle(1, 'Mix');
+						wrapped.updateTitle(1, 'Max');
+						throw 'z';
+					});
+				} catch (e) {
+					caughtError = e;
+				}
+				expect(caughtError).toEqual('z');
+				expect(wrapped.isBatchActive()).toBeFalsy();
+				expect(listener).not.toHaveBeenCalled();
+			});
 		});
 		describe('in local session', function () {
 			var wrapped, listener;
@@ -2051,6 +2089,11 @@ describe('content aggregate', function () {
 					['updateTitle', 1, 'Mix'],
 					['updateTitle', 1, 'Max']
 				]);
+			});
+			it('does not send the event if the batch is discarded', function () {
+				wrapped.discardBatch();
+				expect(listener).not.toHaveBeenCalled();
+				expect(wrapped.isBatchActive()).toBeFalsy();
 			});
 			it('will open a new batch if starting and there is an open one', function () {
 				wrapped.startBatch();
@@ -2207,6 +2250,38 @@ describe('content aggregate', function () {
 					expect(_.size(wrapped.ideas[1].ideas)).toBe(2);
 					expect(wrapped.ideas[1].title).toBe('Original');
 				});
+			});
+		});
+		describe('isBatchActive', function () {
+			var wrapped;
+			beforeEach(function () {
+				wrapped = content({id: 1, title: 'Original'}, 'session1');
+			});
+			it('is false if no batch running for session', function () {
+				expect(wrapped.isBatchActive('abc')).toBeFalsy();
+			});
+			it('is true if batch is running for a session', function () {
+				wrapped.startBatch('abc');
+				expect(wrapped.isBatchActive('abc')).toBeTruthy();
+			});
+			it('is false if batch is closed for a session', function () {
+				wrapped.startBatch('abc');
+				wrapped.endBatch('abc');
+				expect(wrapped.isBatchActive('abc')).toBeFalsy();
+			});
+			it('is true within the batch method', function () {
+				wrapped.batch(function () {
+					expect(wrapped.isBatchActive()).toBeTruthy();
+				});
+				expect(wrapped.isBatchActive()).toBeFalsy();
+			});
+			it('checks local session if no arg provided', function () {
+				wrapped.startBatch();
+				expect(wrapped.isBatchActive()).toBeTruthy();
+			});
+			it('checks only the provided session', function () {
+				wrapped.startBatch('abc');
+				expect(wrapped.isBatchActive('def')).toBeFalsy();
 			});
 		});
 	});
@@ -2444,17 +2519,18 @@ describe('content aggregate', function () {
 		describe('pasteMultiple', function () {
 			var idea, toPaste, result;
 			beforeEach(function () {
-				idea = content({id: 1, ideas: {'-10': { id: 3}, '-15' : {id: 4}}});
+				idea = content({id: 1, title: 'original', ideas: {'-10': { id: 3}, '-15' : {id: 4}}});
 				idea.setConfiguration({
 					nonClonedAttributes: ['noncloned']
 				});
 				toPaste = [{title: 'pasted', id: 1, ideas: {1: { id: 66, attr: {cloned: 1, noncloned: 2}, title: 'sub sub'}}}, {title: 'pasted2'}];
-				result = idea.pasteMultiple(3, toPaste);
 			});
 			it('cleans up attributes', function () {
+				result = idea.pasteMultiple(3, toPaste);
 				expect(idea.ideas[1].ideas[-10].ideas[1].ideas[1].attr).toEqual({cloned: 1});
 			});
 			it('pastes an array of JSONs into the subidea idea by id', function () {
+				result = idea.pasteMultiple(3, toPaste);
 				expect(idea.ideas[1].ideas[-10].ideas[1].title).toBe('pasted');
 				expect(idea.ideas[1].ideas[-10].ideas[1].id).toBe(5);
 				expect(idea.ideas[1].ideas[-10].ideas[1].ideas[1].title).toBe('sub sub');
@@ -2463,10 +2539,22 @@ describe('content aggregate', function () {
 				expect(idea.ideas[1].ideas[-10].ideas[2].id).toBe(7);
 			});
 			it('batches the paste', function () {
+				result = idea.pasteMultiple(3, toPaste);
 				idea.undo();
 				expect(idea.ideas[1].ideas[-10].ideas).toEqual({});
 			});
+			it('does not create a batch if one is already active', function () {
+				idea.batch(function () {
+					idea.updateTitle(1, 'updated');
+					idea.pasteMultiple(3, toPaste);
+				});
+				idea.undo();
+
+				expect(idea.ideas[1].ideas[-10].ideas).toEqual({});
+				expect(idea.findSubIdeaById(1).title).toEqual('original');
+			});
 			it('returns an array of pasting results', function () {
+				result = idea.pasteMultiple(3, toPaste);
 				expect(result).toEqual([5, 7]);
 			});
 		});
