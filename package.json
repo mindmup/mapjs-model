@@ -1,6 +1,6 @@
 {
   "name": "mindmup-mapjs-model",
-  "version": "1.2.4",
+  "version": "1.2.5",
   "description": "MindMup MapJS non-DOM components",
   "main": "index.js",
   "scripts": {
