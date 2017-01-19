@@ -138,7 +138,7 @@ module.exports = function content(contentAggregate, sessionKey) {
 		},
 		nextChildRank = function (parentIdea) {
 			var newRank, counts, childRankSign = 1;
-			if (isRootNode(parentIdea.id)) {
+			if (isRootNode(parentIdea.id) && contentAggregate.getAttr('rootChildRanks') !== 'sequential') {
 				counts = _.countBy(parentIdea.ideas, function (v, k) {
 					return k < 0;
 				});

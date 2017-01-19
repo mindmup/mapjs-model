@@ -1016,39 +1016,86 @@ describe('content aggregate', function () {
 				idea.addSubIdea(1);
 				expect(Math.abs(idea.findChildRankById(5))).not.toBeLessThan(16);
 			});
-			describe('balances positive/negative ranks when adding to aggegate root', function () {
+			[undefined, false, 'balanced'].forEach(function (balancing) {
+				describe('when rootChildRanks is ' + balancing, function () {
+					var newId;
+					describe('balances positive/negative ranks when adding to aggegate root', function () {
+						it('gives first child a positive rank', function () {
+							var idea = content({id: 1});
+							idea.updateAttr(idea.id, 'rootChildRanks', balancing);
+							newId = idea.addSubIdea(1, 'new');
+							expect(idea.ideas[1].findChildRankById(newId)).toBeGreaterThan(0);
+						});
+						it('gives second child a negative rank', function () {
+							var idea = content({id: 1});
+							idea.updateAttr(idea.id, 'rootChildRanks', balancing);
+							idea.addSubIdea(1, 'new');
+							newId = idea.addSubIdea(1, 'new');
+							expect(idea.ideas[1].findChildRankById(newId)).toBeLessThan(0);
+						});
+						it('adds a negative rank if there are more positive ranks than negative', function () {
+							var idea = content({id: 1, title: 'I1', ideas: {5: {id: 2, title: 'I2'}, 10: {id: 3, title: 'I3'}, '-15': {id: 4, title: 'I4'}}});
+							idea.updateAttr(idea.id, 'rootChildRanks', balancing);
+							newId = idea.addSubIdea(1);
+							expect(idea.ideas[1].findChildRankById(newId)).toBeLessThan(0);
+						});
+						it('adds a positive rank if there are less or equal positive ranks than negative', function () {
+							var idea = content({id: 1, title: 'I1', ideas: {5: {id: 2, title: 'I2'}, '-15': {id: 4, title: 'I4'}}});
+							idea.updateAttr(idea.id, 'rootChildRanks', balancing);
+							newId = idea.addSubIdea(1);
+							expect(idea.ideas[1].findChildRankById(newId)).toBeGreaterThan(5);
+						});
+						it('when adding positive rank nodes, adds a node at a rank greater than any of its siblings', function () {
+							var idea = content({id: 1, ideas: {'-3': {id: 5}, '-5': {id: 2}, 10: {id: 3}, 15 : {id: 4}}});
+							idea.updateAttr(idea.id, 'rootChildRanks', balancing);
+							newId = idea.addSubIdea(1, 'x');
+							expect(idea.ideas[1].findChildRankById(newId)).toBeGreaterThan(15);
+						});
+						it('when adding negative rank nodes, adds a node at a rank lesser than any of its siblings', function () {
+							var idea = content({id: 1, ideas: {'-3': {id: 5}, '-5': {id: 2}, 10: {id: 3}, 15: {id: 4}, 20: {id: 6}}});
+							idea.updateAttr(idea.id, 'rootChildRanks', balancing);
+							newId = idea.addSubIdea(1, 'x');
+							expect(idea.ideas[1].findChildRankById(newId)).toBeLessThan(-5);
+						});
+					});
+				});
+			});
+			describe('does not balance root node ranks when rootChildRanks is sequential', function () {
+				var newId;
 				it('gives first child a positive rank', function () {
 					var idea = content({id: 1});
-					idea.addSubIdea(1, 'new');
-					expect(idea.findChildRankById(2)).not.toBeLessThan(0);
+					idea.updateAttr(idea.id, 'rootChildRanks', 'sequential');
+					newId = idea.addSubIdea(1, 'new');
+					expect(idea.ideas[1].findChildRankById(newId)).toBeGreaterThan(0);
 				});
-				it('gives second child a negative rank', function () {
-					var idea = content({id: 1});
-					idea.addSubIdea(1, 'new');
-					idea.addSubIdea(1, 'new');
-					expect(idea.ideas[1].findChildRankById(3)).toBeLessThan(0);
+				it('gives second child the next positive rank', function () {
+					var idea = content({id: 1}), firstChild;
+					idea.updateAttr(idea.id, 'rootChildRanks', 'sequential');
+					firstChild = idea.addSubIdea(1, 'new');
+					newId = idea.addSubIdea(1, 'new');
+					expect(idea.ideas[1].findChildRankById(newId)).toBeGreaterThan(0);
+					expect(idea.ideas[1].findChildRankById(newId)).toBeGreaterThan(idea.ideas[1].findChildRankById(firstChild));
 				});
-				it('adds a negative rank if there are more positive ranks than negative', function () {
+				it('adds a positive ranks when there are mixed positive/negative ranks', function () {
 					var idea = content({id: 1, title: 'I1', ideas: {5: {id: 2, title: 'I2'}, 10: {id: 3, title: 'I3'}, '-15': {id: 4, title: 'I4'}}});
-					idea.addSubIdea(1);
-					expect(idea.ideas[1].findChildRankById(5)).toBeLessThan(0);
+					idea.updateAttr(idea.id, 'rootChildRanks', 'sequential');
+					newId = idea.addSubIdea(1);
+					expect(idea.ideas[1].findChildRankById(newId)).toBeGreaterThan(10);
 				});
-				it('adds a positive rank if there are less or equal positive ranks than negative', function () {
-					var idea = content({id: 1, title: 'I1', ideas: {5: {id: 2, title: 'I2'}, '-15': {id: 4, title: 'I4'}}});
-					idea.addSubIdea(1);
-					expect(idea.ideas[1].findChildRankById(5)).not.toBeLessThan(0);
+				it('adds a positive rank if there are only negative rank children', function () {
+					var idea = content({id: 1, title: 'I1', ideas: {'-5': {id: 2, title: 'I2'}, '-15': {id: 4, title: 'I4'}}});
+					idea.updateAttr(idea.id, 'rootChildRanks', 'sequential');
+					newId = idea.addSubIdea(1);
+					expect(idea.ideas[1].findChildRankById(newId)).toBeGreaterThan(0);
 				});
 				it('when adding positive rank nodes, adds a node at a rank greater than any of its siblings', function () {
 					var idea = content({id: 1, ideas: {'-3': {id: 5}, '-5': {id: 2}, 10: {id: 3}, 15 : {id: 4}}});
-					idea.addSubIdea(1, 'x');
-					expect(idea.ideas[1].findChildRankById(6)).not.toBeLessThan(15);
-				});
-				it('when adding negative rank nodes, adds a node at a rank lesser than any of its siblings', function () {
-					var idea = content({id: 1, ideas: {'-3': {id: 5}, '-5': {id: 2}, 10: {id: 3}, 15: {id: 4}, 20: {id: 6}}});
-					idea.addSubIdea(1, 'x');
-					expect(idea.ideas[1].findChildRankById(7)).toBeLessThan(-5);
+					idea.updateAttr(idea.id, 'rootChildRanks', 'sequential');
+					newId = idea.addSubIdea(1, 'x');
+					expect(idea.ideas[1].findChildRankById(newId)).toBeGreaterThan(15);
 				});
 			});
+
 		});
 		describe('changeParent', function () {
 			var idea;
