@@ -1,7 +1,7 @@
 /*global module, console*/
 module.exports = function observable(base) {
 	'use strict';
-	var listeners = [];
+	let listeners = [];
 	base.addEventListener = function (types, listener, priority) {
 		types.split(' ').forEach(function (type) {
 			if (type) {
@@ -26,7 +26,7 @@ module.exports = function observable(base) {
 		});
 	};
 	base.dispatchEvent = function (type) {
-		var args = Array.prototype.slice.call(arguments, 1);
+		const args = Array.prototype.slice.call(arguments, 1);
 		listeners
 			.filter(function (listenerDetails) {
 				return listenerDetails.type === type;

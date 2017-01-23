@@ -1,12 +1,11 @@
 /*global module, require*/
-var urlHelper = require('./url-helper');
+const urlHelper = require('./url-helper');
 module.exports = function (nodeTitle, maxUrlLength) {
 	'use strict';
-	var strippedTitle;
+	const strippedTitle = nodeTitle && urlHelper.stripLink(nodeTitle);
 	if (!nodeTitle) {
 		return '';
 	}
-	strippedTitle = urlHelper.stripLink(nodeTitle);
 	if (strippedTitle.trim() === '') {
 		return (!maxUrlLength || (nodeTitle.length < maxUrlLength) ? nodeTitle : (nodeTitle.substring(0, maxUrlLength) + '...'));
 	}  else {

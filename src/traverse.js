@@ -1,8 +1,8 @@
 /*global module, require */
-var sortedSubIdeas = require('./sorted-sub-ideas');
+const sortedSubIdeas = require('./sorted-sub-ideas');
 module.exports = function traverse(contentIdea, iterator, postOrder, level) {
 	'use strict';
-	var isSingleRootMap = !level && (!contentIdea.formatVersion || contentIdea.formatVersion < 3);
+	const isSingleRootMap = !level && (!contentIdea.formatVersion || contentIdea.formatVersion < 3);
 	level = level || (isSingleRootMap ? 1 : 0);
 	if (!postOrder && (isSingleRootMap || level)) {
 		iterator(contentIdea, level);
