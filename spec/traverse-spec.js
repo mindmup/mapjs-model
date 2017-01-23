@@ -1,10 +1,10 @@
 /*global describe, it, expect, require*/
-var traverse = require('../src/traverse');
+const traverse = require('../src/traverse');
 describe('traverse', function () {
 	'use strict';
 	describe('when version is not specified (so non root nodes or v2)', function () {
 		it('applies a depth-first, pre-order traversal', function () {
-			var content = {  id: 1, ideas: { '11': {id: 11, ideas: { 1: { id: 111}, 2: {id: 112} } }, '-12': {id: 12, ideas: { 1: {id: 121} } }, '-13' : {id: 13} } },
+			const content = {  id: 1, ideas: { '11': {id: 11, ideas: { 1: { id: 111}, 2: {id: 112} } }, '-12': {id: 12, ideas: { 1: {id: 121} } }, '-13': {id: 13} } },
 				result = [],
 				levels = [];
 			traverse(content, function (idea, level) {
@@ -15,7 +15,7 @@ describe('traverse', function () {
 			expect(levels).toEqual([1, 2, 3, 3, 2, 3, 2]);
 		});
 		it('does a post-order traversal if second argument is true', function () {
-			var content = { id: 1, ideas: { '11': {id: 11, ideas: { 1: { id: 111}, 2: {id: 112} } }, '-12': {id: 12, ideas: { 1: {id: 121} } }, '-13' : {id: 13} } },
+			const content = { id: 1, ideas: { '11': {id: 11, ideas: { 1: { id: 111}, 2: {id: 112} } }, '-12': {id: 12, ideas: { 1: {id: 121} } }, '-13': {id: 13} } },
 				result = [],
 				levels = [];
 			traverse(content, function (idea, level) {
@@ -28,7 +28,7 @@ describe('traverse', function () {
 	});
 	describe('v3', function () {
 		it('skips root node in preorder traversal', function () {
-			var content = { formatVersion: 3, id: 1, ideas: { '11': {id: 11, ideas: { 1: { id: 111}, 2: {id: 112} } }, '-12': {id: 12, ideas: { 1: {id: 121} } }, '-13' : {id: 13} } },
+			const content = { formatVersion: 3, id: 1, ideas: { '11': {id: 11, ideas: { 1: { id: 111}, 2: {id: 112} } }, '-12': {id: 12, ideas: { 1: {id: 121} } }, '-13': {id: 13} } },
 				result = [],
 				levels = [];
 			traverse(content, function (idea, level) {
@@ -39,7 +39,7 @@ describe('traverse', function () {
 			expect(levels).toEqual([1, 2, 2, 1, 2, 1]);
 		});
 		it('skips root node in postoder traversal', function () {
-			var content = { id: 1, formatVersion: 3, ideas: { '11': {id: 11, ideas: { 1: { id: 111}, 2: {id: 112} } }, '-12': {id: 12, ideas: { 1: {id: 121} } }, '-13' : {id: 13} } },
+			const content = { id: 1, formatVersion: 3, ideas: { '11': {id: 11, ideas: { 1: { id: 111}, 2: {id: 112} } }, '-12': {id: 12, ideas: { 1: {id: 121} } }, '-13': {id: 13} } },
 				result = [],
 				levels = [];
 			traverse(content, function (idea, level) {

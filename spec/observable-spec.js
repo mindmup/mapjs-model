@@ -1,8 +1,8 @@
 /*global require, describe, it, jasmine, beforeEach, expect, spyOn, console */
-var observable = require('../src/observable');
+const observable = require('../src/observable');
 describe('Observable', function () {
 	'use strict';
-	var obs, listener;
+	let obs, listener;
 	beforeEach(function () {
 		obs = observable({});
 		listener = jasmine.createSpy('Listener');
@@ -42,7 +42,7 @@ describe('Observable', function () {
 		expect(listener).not.toHaveBeenCalledWith();
 	});
 	it('continnues if a listener barfs', function () {
-		var barf = new Error('barf');
+		const barf = new Error('barf');
 		obs.addEventListener('TestEvt', function () {
 			throw barf;
 		}, 1);
@@ -69,7 +69,7 @@ describe('Observable', function () {
 		expect(listener).not.toHaveBeenCalled();
 	});
 	it('supports listener priorities', function () {
-		var result = '';
+		let result = '';
 		obs.addEventListener('TestEvt', function () {
 			result += 'first';
 		}, 1);

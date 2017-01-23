@@ -4,6 +4,7 @@
   "description": "MindMup MapJS non-DOM components",
   "main": "index.js",
   "scripts": {
+    "pretest": "eslint src spec",
     "test": "node spec/support/jasmine-runner.js"
   },
   "repository": {
@@ -23,6 +24,9 @@
   },
   "homepage": "https://github.com/mindmup/mapjs-model#readme",
   "devDependencies": {
+    "eslint": "^3.14.0",
+    "eslint-config-crockford": "^1.0.0",
+    "eslint-config-defaults": "^9.0.0",
     "jasmine": "^2.5.2",
     "jasmine-spec-reporter": "^2.7.0"
   },
