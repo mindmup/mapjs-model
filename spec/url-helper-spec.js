@@ -1,5 +1,5 @@
 /*global describe, it, expect, require*/
-var URLHelper = require('../src/url-helper');
+const URLHelper = require('../src/url-helper');
 describe('URLHelper', function () {
 	'use strict';
 	describe('containsURL', function () {

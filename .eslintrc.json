@@ -9,7 +9,6 @@
   "rules": {
     "strict": ["error", "function"],
     "semi": ["error", "always"],
-    "one-var": "off", 
     "no-const-assign": "error",
     "indent": ["error", "tab", { "SwitchCase": 1 } ],
     "no-plusplus": ["warn", { "allowForLoopAfterthoughts": true }],

@@ -4,7 +4,7 @@
   "description": "MindMup MapJS non-DOM components",
   "main": "index.js",
   "scripts": {
-    "pretest": "eslint src spec",
+    "pxretest": "eslint src spec",
     "test": "node spec/support/jasmine-runner.js"
   },
   "repository": {

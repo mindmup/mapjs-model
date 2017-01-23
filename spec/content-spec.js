@@ -1219,9 +1219,12 @@ describe('content aggregate', function () {
 			});
 			it('pushes an undo function on the event stack', function () {
 				const idea = content({id: 1, ideas: { '-5': { id: 2}}});
+				let newRank = null;
+
 				idea.flip(2);
-				const newRank = idea.findChildRankById(2);
+				newRank = idea.findChildRankById(2);
 				idea.undo();
+
 				expect(idea.ideas[1].findChildRankById(2)).toBe(-5);
 				expect(idea.ideas[1].ideas[newRank]).toBeUndefined();
 			});
@@ -1567,11 +1570,12 @@ describe('content aggregate', function () {
 			});
 			it('reorders immediate children by changing the rank of an idea to be immediately before the provided idea', function () {
 				const idea = content({id: 1, ideas: { 5: { id: 2}, 10: { id: 3},  15: {id: 4}}}),
-					result = idea.positionBefore(4, 3);
+					result = idea.positionBefore(4, 3),
+					newKey = idea.ideas[1].findChildRankById(4);
+
 				expect(result).toBeTruthy();
 				expect(idea.ideas[1].ideas[5].id).toBe(2);
 				expect(idea.ideas[1].ideas[10].id).toBe(3);
-				const newKey = idea.ideas[1].findChildRankById(4);
 				expect(newKey).toBeLessThan(10);
 				expect(newKey).not.toBeLessThan(5);
 			});
@@ -1579,8 +1583,7 @@ describe('content aggregate', function () {
 				const idea = content({id: 1, ideas: { 5: { id: 2}, 12: { id: 3},  15: {id: 4}}});
 				spyOn(idea, 'dispatchEvent');
 
-				const result = idea.positionBefore(3, 3);
-				expect(result).toBeFalsy();
+				expect(idea.positionBefore(3, 3)).toBeFalsy();
 				expect(idea.ideas[1].ideas[5].id).toBe(2);
 				expect(idea.ideas[1].ideas[12].id).toBe(3);
 				expect(idea.ideas[1].ideas[15].id).toBe(4);
@@ -1590,8 +1593,7 @@ describe('content aggregate', function () {
 				const idea = content({id: 1, ideas: { 5: { id: 2}, 12: { id: 3},  15: {id: 4}}});
 				spyOn(idea, 'dispatchEvent');
 
-				const result = idea.positionBefore(3, 4);
-				expect(result).toBeFalsy();
+				expect(idea.positionBefore(3, 4)).toBeFalsy();
 				expect(idea.ideas[1].ideas[5].id).toBe(2);
 				expect(idea.ideas[1].ideas[12].id).toBe(3);
 				expect(idea.ideas[1].ideas[15].id).toBe(4);
@@ -1632,45 +1634,46 @@ describe('content aggregate', function () {
 				});
 				spyOn(idea, 'dispatchEvent');
 
-				const result = idea.positionBefore(6, 3);
-				expect(result).toBe(false);
+				expect(idea.positionBefore(6, 3)).toBe(false);
 				expect(idea.ideas[1].ideas[10].ideas.NaN).not.toBeDefined();
 				expect(idea.dispatchEvent).not.toHaveBeenCalled();
 			});
 			it('orders negative ideas as negative ranks', function () {
 				const idea = content({id: 1, ideas: { '-5': { id: 2}, '-10': { id: 3}, '-15': {id: 4}}}),
-					result = idea.positionBefore(4, 3);
+					result = idea.positionBefore(4, 3),
+					newKey = idea.ideas[1].findChildRankById(4);
+
 				expect(result).toBeTruthy();
 				expect(idea.ideas[1].ideas[-5].id).toBe(2);
 				expect(idea.ideas[1].ideas[-10].id).toBe(3);
-				const newKey = idea.ideas[1].findChildRankById(4);
 				expect(newKey).not.toBeLessThan(-10);
 				expect(newKey).toBeLessThan(-5);
 			});
 			it('puts the child in the first rank if the boundary idea was the first', function () {
 				const idea = content({id: 1, ideas: { 5: { id: 2}, 10: { id: 3},  15: {id: 4}}}),
-					result = idea.positionBefore(4, 2);
+					result = idea.positionBefore(4, 2),
+					newKey = idea.ideas[1].findChildRankById(4);
+
 				expect(result).toBeTruthy();
 				expect(idea.ideas[1].ideas[5].id).toBe(2);
 				expect(idea.ideas[1].ideas[10].id).toBe(3);
-
-				const newKey = idea.ideas[1].findChildRankById(4);
 				expect(newKey).toBeLessThan(5);
 			});
 			it('gives the idea the largest positive rank if the boundary idea was not defined and current rank was positive', function () {
 				const idea = content({id: 1, ideas: { 5: { id: 2}, 10: { id: 3},  15: {id: 4}}}),
-					result = idea.positionBefore(2);
+					result = idea.positionBefore(2),
+					newKey = idea.ideas[1].findChildRankById(2);
+
 				expect(result).toBeTruthy();
 				expect(idea.ideas[1].ideas[10].id).toBe(3);
 				expect(idea.ideas[1].ideas[15].id).toBe(4);
-				const newKey = idea.ideas[1].findChildRankById(2);
 				expect(newKey).not.toBeLessThan(15);
 			});
 			it('fails if the boundary idea was not defined and child was already last', function () {
 				const idea = content({id: 1, ideas: { 5: { id: 2}, 10: { id: 3},  15: {id: 4}}});
 				spyOn(idea, 'dispatchEvent');
-				const result = idea.positionBefore(4);
-				expect(result).toBeFalsy();
+
+				expect(idea.positionBefore(4)).toBeFalsy();
 				expect(idea.ideas[1].ideas[5].id).toBe(2);
 				expect(idea.ideas[1].ideas[10].id).toBe(3);
 				expect(idea.ideas[1].ideas[15].id).toBe(4);
@@ -1678,29 +1681,30 @@ describe('content aggregate', function () {
 			});
 			it('puts the child closest to zero from the - side if the boundary idea was the smallest negative', function () {
 				const idea = content({id: 1, ideas: { '-5': { id: 2}, '-10': { id: 3}, '-15': {id: 4}}}),
-					result = idea.positionBefore(4, 2);
+					result = idea.positionBefore(4, 2),
+					newKey = idea.ideas[1].findChildRankById(4);
+
 				expect(result).toBeTruthy();
 				expect(idea.ideas[1].ideas[-5].id).toBe(2);
 				expect(idea.ideas[1].ideas[-10].id).toBe(3);
-				const newKey = idea.ideas[1].findChildRankById(4);
 				expect(newKey).not.toBeLessThan(-5);
 				expect(newKey).toBeLessThan(0);
 			});
 			it('puts the child in the last negative rank if the boundary idea was not defined but current rank is negative', function () {
 				const idea = content({id: 1, ideas: { '-5': { id: 2}, '-10': { id: 3}, '-15': {id: 4}}}),
-					result = idea.positionBefore(2);
+					result = idea.positionBefore(2),
+					newKey = idea.ideas[1].findChildRankById(2);
+
 				expect(result).toBeTruthy();
 				expect(idea.ideas[1].ideas[-10].id).toBe(3);
 				expect(idea.ideas[1].ideas[-15].id).toBe(4);
-				const newKey = idea.ideas[1].findChildRankById(2);
 				expect(newKey).toBeLessThan(-15);
 			});
 			it('fails if the boundary idea was not defined and child was already last with negative ranks', function () {
 				const idea = content({id: 1, ideas: { '-5': { id: 2}, '-10': { id: 3}, '-15': {id: 4}}});
-				let result;
 				spyOn(idea, 'dispatchEvent');
-				const result = idea.positionBefore(4);
-				expect(result).toBeFalsy();
+
+				expect(idea.positionBefore(4)).toBeFalsy();
 				expect(idea.ideas[1].ideas[-5].id).toBe(2);
 				expect(idea.ideas[1].ideas[-10].id).toBe(3);
 				expect(idea.ideas[1].ideas[-15].id).toBe(4);
@@ -1715,12 +1719,13 @@ describe('content aggregate', function () {
 			});
 			it('delegates to children if it does not contain the requested idea, succeeding if any child does', function () {
 				const idea = content({id: 0, title: 'I0', ideas: {9: {id: 1, ideas: {'-5': {id: 2}, '-10': {id: 3}, '-15': {id: 4}}}}}),
-					result = idea.positionBefore(4, 2);
+					result = idea.positionBefore(4, 2),
+					child = idea.ideas[1].ideas[9],
+					newKey = child.findChildRankById(4);
+
 				expect(result).toBeTruthy();
-				const child = idea.ideas[1].ideas[9];
 				expect(child.ideas[-5].id).toBe(2);
 				expect(child.ideas[-10].id).toBe(3);
-				const newKey = child.findChildRankById(4);
 				expect(newKey).toBeLessThan(10);
 				expect(newKey).not.toBeLessThan(-5);
 				expect(newKey).toBeLessThan(0);
@@ -1774,9 +1779,12 @@ describe('content aggregate', function () {
 			});
 			it('pushes an undo function onto the event stack if successful', function () {
 				const idea = content({id: 1, ideas: { 5: { id: 2}, 10: { id: 3},  15: {id: 4}}});
+				let newKey = '';
 				idea.positionBefore(4, 3);
-				const newKey = idea.findChildRankById(4);
+
+				newKey = idea.findChildRankById(4);
 				idea.undo();
+
 				expect(idea.ideas[1].ideas[15].id).toBe(4);
 				expect(idea.ideas[1].ideas[newKey]).toBeUndefined();
 				expect(_.size(idea.ideas[1].ideas)).toBe(3);
@@ -1784,12 +1792,13 @@ describe('content aggregate', function () {
 		});
 	});
 	describe('redo', function () {
+		let result;
 		it('succeeds if there is something to redo', function () {
 			const wrapped = content({id: 1, title: 'Original'});
 			wrapped.updateTitle(1, 'First');
 			wrapped.undo();
 
-			const result = wrapped.redo();
+			result = wrapped.redo();
 			expect(result).toBeTruthy();
 			expect(wrapped.ideas[1].title).toBe('First');
 		});
@@ -1797,7 +1806,7 @@ describe('content aggregate', function () {
 			const wrapped = content({id: 1, title: 'Original'});
 			wrapped.updateTitle(1, 'First');
 
-			const result = wrapped.redo();
+			result = wrapped.redo();
 			expect(result).toBeFalsy();
 		});
 		it('cancels the top undo from the stack', function () {
@@ -1806,7 +1815,7 @@ describe('content aggregate', function () {
 			wrapped.updateTitle(1, 'Second');
 			wrapped.undo();
 
-			const result = wrapped.redo();
+			result = wrapped.redo();
 			expect(result).toBeTruthy();
 			expect(wrapped.ideas[1].title).toBe('Second');
 		});
@@ -2270,7 +2279,7 @@ describe('content aggregate', function () {
 		});
 	});
 	describe('links', function () {
-		let idea;
+		let idea, result;
 		beforeEach(function () {
 			idea = content({
 				id: 1,
@@ -2329,7 +2338,7 @@ describe('content aggregate', function () {
 			const changedListener = jasmine.createSpy();
 			idea.addEventListener('changed', changedListener);
 
-			const result = idea.addLink(1, 22);
+			result = idea.addLink(1, 22);
 
 			expect(result).toBe(false);
 			expect(idea.links).not.toBeDefined();
@@ -2339,7 +2348,7 @@ describe('content aggregate', function () {
 			const changedListener = jasmine.createSpy();
 			idea.addEventListener('changed', changedListener);
 
-			const result = idea.addLink(2, 2);
+			result = idea.addLink(2, 2);
 
 			expect(result).toBe(false);
 			expect(idea.links).not.toBeDefined();
@@ -2349,7 +2358,7 @@ describe('content aggregate', function () {
 			const changedListener = jasmine.createSpy();
 			idea.addEventListener('changed', changedListener);
 
-			const result = idea.addLink(1, 2);
+			result = idea.addLink(1, 2);
 
 			expect(result).toBe(false);
 			expect(idea.links).not.toBeDefined();
@@ -2360,7 +2369,7 @@ describe('content aggregate', function () {
 			idea.addLink(2, 3);
 			idea.addEventListener('changed', changedListener);
 
-			const result = idea.addLink(2, 3);
+			result = idea.addLink(2, 3);
 
 			expect(result).toBe(false);
 			expect(idea.links.length).toBe(1);
@@ -2375,7 +2384,7 @@ describe('content aggregate', function () {
 			idea.addLink(2, 3);
 			idea.addEventListener('changed', changedListener);
 
-			const result = idea.addLink(3, 2);
+			result = idea.addLink(3, 2);
 
 			expect(result).toBe(false);
 			expect(idea.links.length).toBe(1);
@@ -2390,7 +2399,7 @@ describe('content aggregate', function () {
 			idea.addLink(2, 3);
 			idea.addEventListener('changed', changedListener);
 
-			const result = idea.removeLink(2, 3);
+			result = idea.removeLink(2, 3);
 
 			expect(result).toBe(true);
 			expect(idea.links).toEqual([]);
@@ -2411,7 +2420,7 @@ describe('content aggregate', function () {
 			idea.addLink(2, 3);
 			idea.addEventListener('changed', changedListener);
 
-			const result = idea.removeLink(1, 1);
+			result = idea.removeLink(1, 1);
 
 			expect(result).toBe(false);
 			expect(idea.links.length).toBe(1);
@@ -2426,7 +2435,7 @@ describe('content aggregate', function () {
 			idea.addEventListener('changed', changedListener);
 			idea.addLink(2, 3);
 
-			const result = idea.updateLinkAttr(2, 3, 'newAttr', 'newValue');
+			result = idea.updateLinkAttr(2, 3, 'newAttr', 'newValue');
 
 			expect(result).toBe(true);
 			expect(idea.getLinkAttr(2, 3, 'newAttr')).toBe('newValue');
@@ -2670,11 +2679,13 @@ describe('content aggregate', function () {
 			});
 		});
 		it('fires event when resource added without cloning the resource (to save memory)', function () {
-			const arr = [1, 2, 3, 4, 5];
+			const arr = [1, 2, 3, 4, 5],
+				listener = jasmine.createSpy('resource');
+			let result = '';
+
 			underTest = content({title: 'A'}, 'session1');
-			const listener = jasmine.createSpy('resource');
 			underTest.addEventListener('resourceStored', listener);
-			const result = underTest.storeResource(arr);
+			result = underTest.storeResource(arr);
 			expect(listener).toHaveBeenCalledWith(arr, result, 'session1');
 			arr.push(6);
 			expect(listener.calls.mostRecent().args[0][5]).toEqual(6);
