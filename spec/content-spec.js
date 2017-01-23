@@ -517,19 +517,22 @@ describe('content aggregate', function () {
 				});
 			});
 			it('should reorder children by absolute rank, positive first then negative', function () {
+				let newChildren = '';
 				idea.paste(3, _.extend(toPaste, {ideas: {
 					77: {id: 10, title: '77'},
 					1: { id: 11, title: '1'},
 					'-77': {id: 12, title: '-77'},
 					'-1': {id: 13, title: '-1'}
 				}}));
-				const newChildren = idea.ideas[1].ideas[-10].ideas[1].ideas;
+				newChildren = idea.ideas[1].ideas[-10].ideas[1].ideas;
+
 				expect(newChildren[1].title).toBe('1');
 				expect(newChildren[2].title).toBe('77');
 				expect(newChildren[3].title).toBe('-1');
 				expect(newChildren[4].title).toBe('-77');
 			});
 			it('should clean up attributes from the list of non cloned recursively', function () {
+				let	pastedRoot = '', pastedChild = '', childChild = '';
 				idea.setConfiguration({nonClonedAttributes: ['noncloned', 'xnoncloned']});
 				idea.paste(3, _.extend(toPaste, {
 					attr: { cloned: 'ok', noncloned: 'notok' },
@@ -539,9 +542,9 @@ describe('content aggregate', function () {
 						}
 					}
 				}));
-				const pastedRoot = idea.ideas[2].ideas[-10].ideas[1],
-					pastedChild = pastedRoot.ideas[1],
-					childChild = pastedRoot.ideas[1].ideas[1];
+				pastedRoot = idea.ideas[1].ideas[-10].ideas[1];
+				pastedChild = pastedRoot.ideas[1];
+				childChild = pastedRoot.ideas[1].ideas[1];
 				expect(pastedRoot.attr).toEqual({cloned: 'ok'});
 				expect(pastedChild.attr).toEqual({xcloned: 'ok'});
 				expect(childChild.attr).toBeUndefined();
