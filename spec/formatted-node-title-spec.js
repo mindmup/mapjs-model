@@ -7,8 +7,8 @@ describe('formattedNodeTitle', function () {
 		['an empty string if nothing provided', undefined, ''],
 		['a title without link if title contains text followed by link', 'hello www.google.com', 'hello'],
 		['a title without link if title contains link followed by text', 'www.google.com hello', 'hello'],
-		['a title without link if title contains link surrounded by text', 'hello www.google.com bye', 'hello  bye'],
-		['a title with second link if title contains multiple links with text', 'hello www.google.com www.google.com', 'hello  www.google.com'],
+		['a title without link if title contains link surrounded by text', 'hello www.google.com bye', 'hello bye'],
+		['a title with second link if title contains multiple links with text', 'hello www.google.com www.google.com', 'hello www.google.com'],
 		['a title with second link if title contains multiple links', 'www.google.com www.google.com', 'www.google.com'],
 		['a link if title is link only', 'www.google.com', 'www.google.com']
 	].forEach(function (args) {
@@ -26,5 +26,15 @@ describe('formattedNodeTitle', function () {
 	it('does not truncate text even if maxlength is provided', function () {
 		expect(underTest('http google.com search?q=onlylink', 25)).toEqual('http google.com search?q=onlylink');
 	});
+	it('replaces multiple spaces with a single space', function () {
+		expect(underTest('something    else\t\t  again', 100)).toEqual('something else again');
+	});
+	it('trims lines but keeps new lines when replacing spaces', function () {
+		expect(underTest('   something  \n\nelse\t \n\t  again  ', 100)).toEqual('something\n\nelse\nagain');
+	});
+	it('transforms windows line endings into linux line endings', function () {
+		expect(underTest('something  \r\n\r\nelse\t\r\n\tagain', 100)).toEqual('something\n\nelse\nagain');
+	});
+
 
 });
