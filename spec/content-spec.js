@@ -1178,6 +1178,44 @@ describe('content aggregate', function () {
 				expect(_.size(idea.ideas)).toEqual(1);
 				expect(_.size(idea.ideas[5])).toBeTruthy();
 			});
+			it('should remove any links for the node', () => {
+				const idea = content({
+					id: 'root',
+					formatVersion: 3,
+					ideas: {
+						5: {
+							id: 31,
+							ideas: {
+								1: {
+									id: 311
+								}
+							}
+						},
+						10: {
+							id: 32,
+							ideas: {
+								1: {
+									id: 321
+								}
+							}
+						},
+						15: {
+							id: 33
+						},
+						20: {
+							id: 34
+						}
+					},
+					links: [
+						{ideaIdFrom: 31, ideaIdTo: 32},
+						{ideaIdFrom: 32, ideaIdTo: 33},
+						{ideaIdFrom: 33, ideaIdTo: 31},
+						{ideaIdFrom: 311, ideaIdTo: 321}
+					]
+				});
+				idea.removeSubIdea(31);
+				expect(idea.links).toEqual([{ideaIdFrom: 32, ideaIdTo: 33}]);
+			});
 		});
 		describe('flip', function () {
 			it('assigns the idea the largest positive rank if the current rank was negative', function () {

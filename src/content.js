@@ -665,14 +665,18 @@ module.exports = function content(contentAggregate, sessionKey) {
 				const parent = contentAggregate.findParent(subIdeaId) || contentAggregate,
 					oldRank = parent && parent.findChildRankById(subIdeaId),
 					oldIdea = parent && parent.ideas[oldRank],
-					oldLinks = contentAggregate.links;
+					oldLinks = contentAggregate.links,
+					removedNodeIds = {};
+
 
 				if (!oldRank) {
 					return false;
 				}
+				oldIdea.traverse((traversed)=> removedNodeIds[traversed.id] = true);
 				delete parent.ideas[oldRank];
+
 				contentAggregate.links = _.reject(contentAggregate.links, function (link) {
-					return link.ideaIdFrom == subIdeaId || link.ideaIdTo == subIdeaId;  //eslint-disable-line eqeqeq
+					return removedNodeIds[link.ideaIdFrom]  || removedNodeIds[link.ideaIdTo];
 				});
 				logChange('removeSubIdea', [subIdeaId], function () {
 					parent.ideas[oldRank] = oldIdea;
