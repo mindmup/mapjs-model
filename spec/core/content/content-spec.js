@@ -1,6 +1,6 @@
 /*global beforeEach, describe, expect, it, jasmine, spyOn, require */
-const content = require('../src/content'),
-	_ = require('underscore');
+const _ = require('underscore'),
+	content = require('../../../src/core/content/content');
 describe('content aggregate', function () {
 	'use strict';
 	const ideaIdsByRank = function (ideas) {

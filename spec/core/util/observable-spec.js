@@ -1,5 +1,5 @@
 /*global require, describe, it, jasmine, beforeEach, expect, spyOn, console */
-const observable = require('../src/observable');
+const observable = require('../../../src/core/util/observable');
 describe('Observable', function () {
 	'use strict';
 	let obs, listener;

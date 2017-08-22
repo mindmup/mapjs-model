@@ -1,5 +1,5 @@
 /*global describe, it, expect, require */
-const sortedSubIdeas = require('../src/sorted-sub-ideas');
+const sortedSubIdeas = require('../../../src/core/content/sorted-sub-ideas');
 describe('sortedSubIdeas', function () {
 	'use strict';
 	it('sorts children by key, positive first then negative, by absolute value', function () {

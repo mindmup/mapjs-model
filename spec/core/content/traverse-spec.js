@@ -1,5 +1,5 @@
 /*global describe, it, expect, require*/
-const traverse = require('../src/traverse');
+const traverse = require('../../../src/core/content/traverse');
 describe('traverse', function () {
 	'use strict';
 	describe('when version is not specified (so non root nodes or v2)', function () {

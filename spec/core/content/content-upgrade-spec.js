@@ -1,5 +1,5 @@
 /*global describe,  expect, it, require*/
-const contentUpgrade = require('../src/content-upgrade');
+const contentUpgrade = require('../../../src/core/content/content-upgrade');
 describe('content upgrade', function () {
 	'use strict';
 	describe('upgrade to v3', function () {

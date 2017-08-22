@@ -1,5 +1,5 @@
 /*global module, require*/
-const urlHelper = require('./url-helper'),
+const urlHelper = require('../util/url-helper'),
 	removeLinks = function (nodeTitle, maxUrlLength) {
 		'use strict';
 		const strippedTitle = nodeTitle && urlHelper.stripLink(nodeTitle);

@@ -1,5 +1,5 @@
 /*global require, describe, it, expect*/
-const underTest = require('../src/formatted-node-title');
+const underTest = require('../../../src/core/content/formatted-node-title');
 describe('formattedNodeTitle', function () {
 	'use strict';
 	[

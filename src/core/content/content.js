@@ -1,7 +1,7 @@
 /*jshint loopfunc:true */
 /*global module, require*/
 const _ = require('underscore'),
-	observable = require('./observable'),
+	observable = require('../util/observable'),
 	contentUpgrade = require('./content-upgrade');
 module.exports = function content(contentAggregate, sessionKey) {
 	'use strict';
